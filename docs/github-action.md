@@ -23,10 +23,10 @@ jobs:
     steps:
 
       - name: Checkout (GitHub)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Build and run dev container task
-        uses: devcontainers/ci@v0.3
+        uses: step-security/devcontainers-ci@v0
         with:
           # Change this to be your CI task/script
           runCmd: yarn test
@@ -52,17 +52,17 @@ jobs:
     steps:
 
       - name: Checkout (GitHub)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2 
+        uses: step-security/docker-login-action@v4 
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and run Dev Container task
-        uses: devcontainers/ci@v0.3
+        uses: step-security/devcontainers-ci@v0
         with:
           # Change this to point to your image name
           imageName: ghcr.io/example/example-devcontainer
@@ -79,7 +79,7 @@ In the example above, the devcontainer-build-run will perform the following step
 2. Run the dev container with the `make ci-build` command specified in the `runCmd` input
 3. If the run succeeds (and we're not building from a PR branch) then push the image to the container registry. This enables future image builds in step 1 to use the image layers as a cache to improve performance
 
-The [`devcontainers/ci` action](https://github.com/marketplace/actions/devcontainers-ci) uses Docker BuildKit to perform the Docker builds as this has support for storing layer cache metadata with the image. This is installed by default on hosted runners, but you can use the [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) to install this on your own runners.
+The [`step-security/devcontainers-ci` action](https://github.com/marketplace/actions/devcontainers-ci) uses Docker BuildKit to perform the Docker builds as this has support for storing layer cache metadata with the image. This is installed by default on hosted runners, but you can use the [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) to install this on your own runners.
 
 
 ### Other examples
@@ -88,7 +88,7 @@ The [`devcontainers/ci` action](https://github.com/marketplace/actions/devcontai
 
 ```yaml
 - name: Pre-build dev container image
-  uses: devcontainers/ci@v0.3
+  uses: step-security/devcontainers-ci@v0
   with:
     imageName: ghcr.io/example/example-devcontainer
     cacheFrom: ghcr.io/example/example-devcontainer
@@ -99,7 +99,7 @@ The [`devcontainers/ci` action](https://github.com/marketplace/actions/devcontai
 
 ```yaml
 - name: Run make ci-build in dev container
-  uses: devcontainers/ci@v0.3
+  uses: step-security/devcontainers-ci@v0
   with:    
     # [Optional] If you have a separate workflow like the one above
     # to pre-build your container image, you can reference it here
@@ -114,7 +114,7 @@ The [`devcontainers/ci` action](https://github.com/marketplace/actions/devcontai
 
 ```yaml
 - name: Pre-build image and run make ci-build in dev container
-  uses: devcontainers/ci@v0.3
+  uses: step-security/devcontainers-ci@v0
   with:
     imageName: ghcr.io/example/example-devcontainer
     cacheFrom: ghcr.io/example/example-devcontainer
@@ -171,7 +171,7 @@ To build and run the dev container from `folderB` you can specify the `subFolder
 
 ```yaml
       - name: Build and run dev container task
-        uses: devcontainers/ci@v0.3
+        uses: step-security/devcontainers-ci@v0
         with:
           subFolder: folderB
           imageName: ghcr.io/example/example-devcontainer
@@ -185,7 +185,7 @@ If you want to pass additional environment variables to the dev container when i
 
 ```yaml
       - name: Build and run dev container task
-        uses: devcontainers/ci@v0.3
+        uses: step-security/devcontainers-ci@v0
         env:
           WORLD: World
         with:
@@ -223,7 +223,7 @@ You should set the `HELLO` environment variable using the `env` property on the 
 
 ```yaml
       - name: Build and run dev container task
-        uses: devcontainers/ci@v0.3
+        uses: step-security/devcontainers-ci@v0
         env:
           # Set HELLO here so that it is resolved via the localEnv context
           HELLO: hello
@@ -239,4 +239,4 @@ You should set the `HELLO` environment variable using the `env` property on the 
 
 Builds for multiple platforms have special considerations, detailed at [multi-platform-builds.md](multi-platform-builds.md).
 
-For native multi-platform builds using a matrix strategy, each build job uses `useNativeRunner: true` with a single `platform` value. A separate merge action (`devcontainers/ci/merge`) then combines the per-platform images into a multi-arch manifest. See the [native multi-platform builds](multi-platform-builds.md#native-multi-platform-builds-matrix-strategy) section for full examples.
+For native multi-platform builds using a matrix strategy, each build job uses `useNativeRunner: true` with a single `platform` value. A separate merge action (`step-security/devcontainers-ci/merge`) then combines the per-platform images into a multi-arch manifest. See the [native multi-platform builds](multi-platform-builds.md#native-multi-platform-builds-matrix-strategy) section for full examples.

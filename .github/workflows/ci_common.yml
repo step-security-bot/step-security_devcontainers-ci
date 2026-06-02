@@ -1,5 +1,5 @@
 #
-# This workflow contains the core logic to build, test and release the GitHub Action and Azure DevOps Task
+# This workflow contains the core logic to build, test and Azure DevOps Task
 # It is called via workflow_call from the pr-bot
 #
 name: "build-test"
@@ -24,11 +24,6 @@ on:
         description: true to run the full tests, false to run tests without credentials
         default: true
         type: boolean
-        required: false
-      release:
-        type: boolean
-        description: indicates whether to make a release
-        default: false
         required: false
       AZDO_ORG:
         description: The AzDO org for AzDO task verification
@@ -69,18 +64,18 @@ jobs:
       build_number: ${{ steps.build_number.outputs.build_number }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # if the following value is missing (i.e. not triggered via comment workflow)
           # then the default checkout will apply
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - id: set_image_push_option
         name: Set image push option
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             // if running full tests then use the filter option, for the dev container action
@@ -92,7 +87,7 @@ jobs:
 
       - name: Login to GitHub Container Registry
         if: ${{ steps.set_image_push_option.outputs.image_push_option == 'filter' }}
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -110,7 +105,7 @@ jobs:
 
       - id: set_image_tag
         name: Set image_tag...
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PR_NUMBER: ${{ inputs.prNumber }}
         with:
@@ -178,14 +173,14 @@ jobs:
           echo "VERSION_SHORT=${VERSION_SHORT}"
           echo "VERSION_MAJOR=${VERSION_MAJOR}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         name: Create dev AzDO VSIX artifact
         with:
           name: azdo-task-dev
           path: ./output/devcontainers-dev.ci-${{ steps.build.outputs.version }}.vsix
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         name: Create release AzDO VSIX artifact
         with:
           name: azdo-task
@@ -195,6 +190,7 @@ jobs:
   checks-succeeded:
     # simple no-op job to use as step for check status
     name: All succeeded
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
     needs: # TODO - check what jobs need adding here
       - build
       # - test-azdo
@@ -231,7 +227,7 @@ jobs:
       # If prHeadSha is specified then explicity mark the checks for that SHA
       - name: Report check status
         if: ${{ inputs.prHeadSha }}
-        uses: LouisBrunner/checks-action@v2.0.0
+        uses: LouisBrunner/checks-action@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # the name must be identical to the one received by the real job
@@ -239,99 +235,6 @@ jobs:
           name: "Build, test, publish / All succeeded"
           status: "completed"
           conclusion: "success"
-
-  release:
-    name: Create release
-    runs-on: ubuntu-latest
-    needs:
-      - build
-      - checks-succeeded
-    if: ${{ inputs.release == true }}
-    env:
-      VERSION: ${{ needs.build.outputs.version }}
-      VERSION_SHORT: ${{ needs.build.outputs.version_short }}
-      VERSION_MAJOR: ${{ needs.build.outputs.version_major }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          # if the following value is missing (i.e. not triggered via comment workflow)
-          # then the default checkout will apply
-          ref: ${{ inputs.prRef }}
-
-      - name: Show version info
-        run: |
-          echo "VERSION=${VERSION}"
-          echo "VERSION_SHORT=${VERSION_SHORT}"
-          echo "VERSION_MAJOR=${VERSION_MAJOR}"
-
-      - name: Download release VSIX
-        uses: actions/download-artifact@v4
-        with:
-          name: azdo-task
-          path: output
-
-      - name: Show version
-        run: |
-          echo "VERSION: $VERSION"
-          echo "VERSION_SHORT: $VERSION_SHORT"
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        if: github.ref == 'refs/heads/main' # only need this for push (on `main`)
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Published action contains compiled JS, but we need to compile it here
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-      - name: Compile GH action
-        run: |
-          (cd common && npm install && npm run build)
-          (cd github-action/ && npm install && npm run build && npm run package)
-          (cd merge/ && npm install && npm run build && npm run package)
-
-      # - name: Publish AzDO Task
-      #   uses: ./
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     AZDO_PROJECT: ${{ inputs.AZDO_PROJECT }}
-      #     AZDO_BUILD: ${{ inputs.AZDO_BUILD }}
-      #     AZDO_ORG: ${{ inputs.AZDO_ORG }}
-      #     AZDO_TOKEN: ${{ secrets.AZDO_TOKEN }}
-      #     AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZDO_TOKEN }}
-      #     BUILD_NUMBER: ${{ github.run_id }}
-      #     IS_PR: ${{ github.head_ref }}
-      #     BRANCH: ${{ github.ref }}
-      #   with:
-      #     imageName: ghcr.io/devcontainers/ci-devcontainer
-      #     runCmd: |
-      #       echo "Starting"
-      #       ./scripts/publish-azdo-task.sh
-      #     env: |
-      #       BUILD_NUMBER
-      #       IS_CI=1
-      #       IS_PR
-      #       BRANCH
-      #       AZDO_TOKEN
-      #       AZURE_DEVOPS_EXT_PAT
-      #       AZDO_ORG
-      #       AZDO_PROJECT
-      #       AZDO_BUILD
-
-      - name: Create GitHub Action Release
-        env:
-          TAG_NAME: v${{ needs.build.outputs.version_short }}
-          RELEASE_NAME: v${{ needs.build.outputs.version }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name "CI build"
-          git config user.email automated-build@example.com
-
-          ./scripts/gh-release.sh
 
   #
   # Jobs to test
@@ -349,7 +252,7 @@ jobs:
   #   if: ${{ needs.build.outputs.image_push_option == 'filter' }}
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v6
   #       with:
   #         persist-credentials: false
   #         # if the following value is missing (i.e. not triggered via comment workflow)
@@ -365,18 +268,18 @@ jobs:
   #         echo "VERSION_SHORT: $VERSION_SHORT"
 
   #     - name: Download workflow artifacts
-  #       uses: actions/download-artifact@v4
+  #       uses: actions/download-artifact@v8
   #       with:
   #         path: output
 
   #     - name: Download release VSIX
-  #       uses: actions/download-artifact@v4
+  #       uses: actions/download-artifact@v8
   #       with:
   #         name: azdo-task-dev
   #         path: output
 
   #     - name: Login to GitHub Container Registry
-  #       uses: docker/login-action@v3
+  #       uses: step-security/docker-login-action@v4
   #       if: github.ref == 'refs/heads/main' # only need this for push (on `main`)
   #       with:
   #         registry: ghcr.io
@@ -428,7 +331,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -466,7 +369,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -505,7 +408,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -513,11 +416,11 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -550,7 +453,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -558,11 +461,11 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -603,7 +506,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -611,10 +514,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -648,7 +551,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -656,10 +559,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -693,7 +596,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -701,10 +604,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -738,7 +641,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -746,10 +649,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -792,7 +695,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -800,10 +703,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -837,7 +740,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -845,10 +748,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -889,7 +792,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -897,10 +800,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -934,7 +837,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -961,7 +864,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -969,16 +872,16 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up QEMU for multi-architecture builds
-        uses: docker/setup-qemu-action@v3
+        uses: step-security/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Skopeo version
         run: skopeo --version
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io
@@ -1025,7 +928,7 @@ jobs:
     if: ${{ needs.build.outputs.image_push_option == 'filter' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -1033,7 +936,7 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -1058,10 +961,10 @@ jobs:
           push: always
 
       - name: Set up QEMU for multi-architecture builds
-        uses: docker/setup-qemu-action@v3
+        uses: step-security/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Skopeo version
         run: skopeo --version
@@ -1118,7 +1021,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           # if the following value is missing (i.e. not triggered via comment workflow)
@@ -1126,10 +1029,10 @@ jobs:
           ref: ${{ inputs.prRef }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: step-security/docker-login-action@v4
         if: ${{ needs.build.outputs.image_push_option == 'filter' }}
         with:
           registry: ghcr.io

@@ -27,7 +27,6 @@ jobs:
     name: "Build, test, publish"
     uses: ./.github/workflows/ci_common.yml
     with:
-      release: false
       prNumber: ${{ github.event.inputs.prNumber }}
       # despite the runFullTests input being a boolean, we seem to get a string below!
       runFullTests: ${{ github.event.inputs.runFullTests == 'true' }}

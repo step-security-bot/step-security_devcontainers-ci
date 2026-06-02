@@ -1,6 +1,6 @@
 {
   "name": "devcontainer-merge-action",
-  "version": "0.0.0",
+  "version": "0.3.1900000450",
   "private": true,
   "description": "Action to merge per-platform dev container images into a multi-arch manifest",
   "main": "lib/main.js",
@@ -12,10 +12,17 @@
     "package": "ncc build --source-map --license licenses.txt",
     "all": "npm run build && npm run format && npm run lint && npm run package"
   },
+  "author": "step-security",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/step-security/devcontainers-ci.git"
+  },
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/exec": "^1.1.1"
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.0",
+    "axios": "^1.7.7"
   },
   "devDependencies": {
     "@types/node": "^24.9.0",

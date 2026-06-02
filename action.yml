@@ -1,6 +1,6 @@
 name: 'Dev Container Build and Run Action'
 description: 'Action to simplify using Dev Containers (https://containers.dev) in GitHub workflows'
-author: 'devcontainers'
+author: 'step-security'
 branding:
   color: purple
   icon: box

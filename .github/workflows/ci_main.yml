@@ -1,6 +1,6 @@
 ---
 name: CI (main)
-# This workflow is triggered on pushes to main and runs tests and performs the release steps
+# This workflow is triggered on pushes to main and runs tests
 
 on:
   push:
@@ -18,7 +18,5 @@ jobs:
     name: "Build, test, publish"
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/ci_common.yml
-    with:
-      release: true
     secrets:
       AZDO_TOKEN: ${{ secrets.AZDO_TOKEN }}

@@ -1,5 +1,7 @@
 # Dev Container Build and Run Task
 
+> **Note:** The Azure DevOps task variant of this project is **not currently supported by the StepSecurity-maintained fork** (`step-security/devcontainers-ci`). Only the GitHub Action is actively maintained and released. The documentation below is retained from the upstream project for reference; published Marketplace builds, security patches, and dependency updates may not be available for the Azure DevOps task at this time. If you need the Azure DevOps task, please use the upstream project.
+
 The Dev Container Build and Run Azure DevOps task is aimed at making it easier to re-use a [Dev Container](https://containers.dev) in an Azure DevOps pipeline. It supports using a Dev Container to run commands for CI, testing, and more along with pre-building Dev Container image. Dev Container image building supports [Dev Container Features](https://containers.dev/implementors/features/#devcontainer-json-properties) and automatically places Dev Container [metadata on an image](https://containers.dev/implementors/spec/#image-metadata) label for simplified use.
 
 ## Getting Started

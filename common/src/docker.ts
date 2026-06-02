@@ -179,7 +179,9 @@ async function ensureHostAndContainerUsersAlign(
 	const hostUsers = parsePasswd(resultHostPasswd.stdout);
 	const hostUser = hostUsers.find(u => u.name === hostUserName);
 	if (!hostUser) {
-		console.log(`Host /etc/passwd:\n${resultHostPasswd.stdout}`);
+		console.log(
+			`Failed host user lookup in parsed /etc/passwd metadata (hostUserName='${hostUserName}', parsedUserCount=${hostUsers.length})`,
+		);
 		throw new Error(
 			`Failed to find host user in host info. (hostUserName='${hostUserName}')`,
 		);
@@ -190,7 +192,9 @@ async function ensureHostAndContainerUsersAlign(
 	const containerGroups = parseGroup(resultContainerGroup.stdout);
 	const containerUser = containerUsers.find(u => u.name === containerUserName);
 	if (!containerUser) {
-		console.log(`Container /etc/passwd:\n${resultContainerPasswd.stdout}`);
+		console.log(
+			`Container user lookup failed for configured remote user '${containerUserName}'.`,
+		);
 		throw new Error(
 			`Failed to find container user in container info. (containerUserName='${containerUserName}')`,
 		);

@@ -1,6 +1,6 @@
 # Multiplatform Dev Container Builds
 
-Building dev containers to support multiple platforms (aka CPU architectures) is possible with the devcontainers/ci GitHub Action/Azure DevOps Task, but requires other actions/tasks to be run beforehand and has several caveats.
+Building dev containers to support multiple platforms (aka CPU architectures) is possible with the step-security/devcontainers-ci GitHub Action/Azure DevOps Task, but requires other actions/tasks to be run beforehand and has several caveats.
 
 ## General Notes/Caveats
 
@@ -23,21 +23,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (GitHub)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Set up QEMU for multi-architecture builds
-        uses: docker/setup-qemu-action@v3
+        uses: step-security/setup-qemu-action@v4
       - name: Setup Docker buildx for multi-architecture builds
-        uses: docker/setup-buildx-action@v3
+        uses: step-security/setup-buildx-action@v4
         with:
           use: true
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and release devcontainer Multi-Platform
-        uses: devcontainers/ci@v0.3
+        uses: step-security/devcontainers-ci@v0
         with:
           imageName: ghcr.io/UserNameHere/ImageNameHere
           platform: linux/amd64,linux/arm64
@@ -80,7 +80,7 @@ Instead of using QEMU emulation on a single runner, you can use native runners i
 ### How it works
 
 1. **Build jobs** run in parallel on native runners. Each job sets `useNativeRunner: true` and a single `platform` value (e.g., `linux/amd64`). The tag suffix is auto-derived from the platform (e.g., `linux/amd64` becomes `linux-amd64`). Build jobs must set `push: always` so that platform-specific images are pushed regardless of event filters (the merge job needs them in the registry).
-2. **Merge job** runs after all build jobs complete. It uses a dedicated merge action (`devcontainers/ci/merge` for GitHub Actions, `DevcontainersMerge` for Azure DevOps) to combine the per-platform images into a multi-arch manifest. The platform-specific tags (e.g., `myimage:latest-linux-amd64`) remain in the registry after the merge.
+2. **Merge job** runs after all build jobs complete. It uses a dedicated merge action (`step-security/devcontainers-ci/merge` for GitHub Actions, `DevcontainersMerge` for Azure DevOps) to combine the per-platform images into a multi-arch manifest. The platform-specific tags (e.g., `myimage:latest-linux-amd64`) remain in the registry after the merge.
 
 ### Benefits
 
@@ -104,14 +104,14 @@ jobs:
             platform: linux/arm64
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v6
+      - uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/setup-buildx-action@v3
-      - uses: devcontainers/ci@v0.3
+      - uses: step-security/setup-buildx-action@v4
+      - uses: step-security/devcontainers-ci@v0
         with:
           imageName: ghcr.io/example/myimage
           platform: ${{ matrix.platform }}
@@ -122,13 +122,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: docker/login-action@v3
+      - uses: step-security/docker-login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/setup-buildx-action@v3
-      - uses: devcontainers/ci/merge@v0.3
+      - uses: step-security/setup-buildx-action@v4
+      - uses: step-security/devcontainers-ci/merge@v0
         with:
           imageName: ghcr.io/example/myimage
           platforms: linux/amd64,linux/arm64
