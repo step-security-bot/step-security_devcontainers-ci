@@ -1,0 +1,80 @@
+name: 'Dev Container Build and Run Action'
+description: 'Action to simplify using Dev Containers (https://containers.dev) in GitHub workflows'
+author: 'devcontainers'
+branding:
+  color: purple
+  icon: box
+inputs:
+  imageName:
+    required: false
+    description: Image name (including registry)
+  imageTag:
+    required: false
+    description: One or more comma-separated image tags (defaults to latest)
+  platform:
+    require: false
+    description: Platforms for which the image should be built. If omitted, defaults to the platform of the GitHub Actions Runner. Multiple platforms should be comma separated.
+  runCmd:
+    required: false
+    description: Specify the command to run after building the dev container image. Can be omitted to skip starting the container.
+  subFolder:
+    required: false
+    description: Specify a child folder (containing a .devcontainer) instead of using the repository root
+    default:
+  configFile:
+    required: false
+    description: Specify the path to a devcontainer.json file instead of using `./.devcontainer/devcontainer.json` or `./.devcontainer.json`
+    default:
+  checkoutPath:
+    required: false
+    description: Specify path to checked out folder if not using default (or for testing with nektos/act)
+    default: .
+  push:
+    required: false
+    default: filter
+    description: Control when images are pushed. Options are never, filter, always. For filter (default), images are pushed if the refFilterForPush and eventFilterForPush conditions are met
+  refFilterForPush:
+    required: false
+    default:
+    description: Set the source branches (e.g. refs/heads/main) that are allowed to trigger a push of the dev container image. Leave empty to allow all.
+  eventFilterForPush:
+    required: false
+    default: push
+    description: Set the event names (e.g. pull_request, push) that are allowed to trigger a push of the dev container image. Defaults to push. Leave empty for all
+  env:
+    required: false
+    description: Specify environment variables to pass to the docker run command
+  inheritEnv:
+    required: false
+    default: false
+    description: Inherit all environment variables of the runner CI machine.
+  skipContainerUserIdUpdate:
+    required: false
+    default: false
+    description: For non-root Dev Containers (i.e. where `remoteUser` is specified), the action attempts to make the container user UID and GID match those of the host user. Set this to true to skip this step (defaults to false)
+  userDataFolder:
+    required: false
+    description: Some steps for building the dev container (e.g. container-features) require generating additional build files. To aid docker build cache re-use, you can use this property to set the path that these files will be generated under and use the actions/cache action to cache that folder across runs
+  cacheFrom:
+    required: false
+    description: Specify additional images to use for build caching
+  noCache:
+    type: boolean
+    required: false
+    default: false
+    description: Builds the image with `--no-cache` (takes precedence over `cacheFrom`)
+  cacheTo:
+    required: false
+    description: Specify the image to cache the built image to
+  useNativeRunner:
+    required: false
+    default: 'false'
+    description: 'Set to true for native multi-platform builds. When true, platform must be a single value (e.g., linux/amd64) and the image tag suffix is auto-derived (linux/amd64 becomes linux-amd64). The --platform flag is not passed to devcontainer build, relying on the native runner architecture.'
+outputs:
+  runCmdOutput:
+    description: The output of the command specified in the runCmd input
+runs:
+  using: 'node24'
+  main: 'github-action/run-main.js'
+  post: 'github-action/run-post.js'
+  post-if: 'success()'
