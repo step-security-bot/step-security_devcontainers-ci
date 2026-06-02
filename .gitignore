@@ -109,3 +109,8 @@ output
 
 common_lib
 lib
+
+# AzDO task dist/ folders are build-time only (packaged into the .vsix);
+# the GitHub Action dist/ folders ARE tracked because they're consumed via `uses:`.
+azdo-task/DevcontainersCi/dist/
+azdo-task/DevcontainersMerge/dist/
