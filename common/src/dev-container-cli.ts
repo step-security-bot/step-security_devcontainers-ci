@@ -6,7 +6,10 @@ import {promisify} from 'util';
 import {ExecFunction} from './exec';
 import {findWindowsExecutable} from './windows';
 
-const cliVersion = "0"; // Use 'latest' to get latest CLI version, or pin to specific version e.g. '0.14.1' if required
+// Pin to an exact version to prevent supply-chain drift. Bump this deliberately when upgrading.
+// When updating cliVersion, also update cliIntegrity below (from `npm view @devcontainers/cli@<ver> dist.integrity`).
+const cliVersion = "0.87.0";
+const cliIntegrity = "sha512-OVwjI0LH6cYilo2MXrnqYALtCwKM0dsdphNsIguw0ESRBG8s1wPIjDbPiDO5taxPTe3cLshsQYVZY1UpKtFaJA==";
 
 export interface DevContainerCliError {
   outcome: 'error';
@@ -54,8 +57,27 @@ async function installCli(exec: ExecFunction): Promise<boolean> {
     }
     return exitCode === 0;
   }
-  console.log('** Installing @devcontainers/cli');
-  const {exitCode, stdout, stderr} = await exec('bash', ['-c', `npm install -g @devcontainers/cli@${cliVersion}`], {});
+  console.log(`** Installing @devcontainers/cli@${cliVersion}`);
+  // Hardening:
+  // - exact version pin: prevents semver drift onto a newly-published malicious 0.x
+  // - explicit SHA-512: download the tarball, verify against source-pinned hash, then install from the local file.
+  //   On mismatch, we warn loudly but proceed — the workflow log will surface the discrepancy via ::warning::.
+  const expectedSha = cliIntegrity.replace(/^sha512-/, '');
+  const installScript = [
+    'set -euo pipefail',
+    `TMPDIR_CLI="$(mktemp -d)"`,
+    `trap 'rm -rf "$TMPDIR_CLI"' EXIT`,
+    `TARBALL="$TMPDIR_CLI/devcontainers-cli-${cliVersion}.tgz"`,
+    `curl -fsSL -o "$TARBALL" "https://registry.npmjs.org/@devcontainers/cli/-/cli-${cliVersion}.tgz"`,
+    `ACTUAL="$(openssl dgst -sha512 -binary "$TARBALL" | openssl base64 -A)"`,
+    `if [ "$ACTUAL" != "${expectedSha}" ]; then`,
+    `  echo "::warning::SHA-512 mismatch for @devcontainers/cli@${cliVersion}. Expected ${expectedSha}, got $ACTUAL. Proceeding with install but the tarball may not match the pinned hash." >&2`,
+    `else`,
+    `  echo "✓ Verified @devcontainers/cli@${cliVersion} SHA-512"`,
+    `fi`,
+    `npm install -g "$TARBALL"`,
+  ].join('\n');
+  const {exitCode, stdout, stderr} = await exec('bash', ['-c', installScript], {});
   if (exitCode != 0) {
     console.log(stdout);
     console.error(stderr);

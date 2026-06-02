@@ -75,6 +75,6 @@ outputs:
     description: The output of the command specified in the runCmd input
 runs:
   using: 'node24'
-  main: 'github-action/run-main.js'
-  post: 'github-action/run-post.js'
+  main: 'github-action/dist/main/index.js'
+  post: 'github-action/dist/post/index.js'
   post-if: 'success()'

@@ -17,4 +17,4 @@ inputs:
     description: 'Comma-separated list of platforms in standard format (e.g., linux/amd64,linux/arm64). Tag suffixes are auto-derived.'
 runs:
   using: 'node24'
-  main: 'run-main.js'
+  main: 'dist/index.js'
