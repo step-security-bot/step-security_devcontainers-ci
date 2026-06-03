@@ -128,16 +128,18 @@ async function ensureHostAndContainerUsersAlign(
 		silent: true,
 	});
 	if (resultHostUser.exitCode !== 0) {
+		// Do not include stdout in the error: it would be the host username (PII).
 		throw new Error(
-			`Failed to get host user (exitcode: ${resultHostUser.exitCode}):${resultHostUser.stdout}\n${resultHostUser.stderr}`,
+			`Failed to get host user (exitcode: ${resultHostUser.exitCode}): ${resultHostUser.stderr}`,
 		);
 	}
 	const resultHostPasswd = await exec('/bin/sh', ['-c', 'cat /etc/passwd'], {
 		silent: true,
 	});
 	if (resultHostPasswd.exitCode !== 0) {
+		// Do not include stdout in the error: it would be /etc/passwd content.
 		throw new Error(
-			`Failed to get host user info (exitcode: ${resultHostPasswd.exitCode}):${resultHostPasswd.stdout}\n${resultHostPasswd.stderr}`,
+			`Failed to get host user info (exitcode: ${resultHostPasswd.exitCode}): ${resultHostPasswd.stderr}`,
 		);
 	}
 	const resultContainerPasswd = await exec(
@@ -153,8 +155,9 @@ async function ensureHostAndContainerUsersAlign(
 		{silent: true},
 	);
 	if (resultContainerPasswd.exitCode !== 0) {
+		// Do not include stdout in the error: it would be /etc/passwd content.
 		throw new Error(
-			`Failed to get container user info (exitcode: ${resultContainerPasswd.exitCode}):${resultContainerPasswd.stdout}\n${resultContainerPasswd.stderr}`,
+			`Failed to get container user info (exitcode: ${resultContainerPasswd.exitCode}): ${resultContainerPasswd.stderr}`,
 		);
 	}
 	const resultContainerGroup = await exec(
@@ -170,8 +173,9 @@ async function ensureHostAndContainerUsersAlign(
 		{silent: true},
 	);
 	if (resultContainerGroup.exitCode !== 0) {
+		// Do not include stdout in the error: it would be /etc/group content.
 		throw new Error(
-			`Failed to get container group info (exitcode: ${resultContainerGroup.exitCode}):${resultContainerGroup.stdout}\n${resultContainerGroup.stderr}`,
+			`Failed to get container group info (exitcode: ${resultContainerGroup.exitCode}): ${resultContainerGroup.stderr}`,
 		);
 	}
 

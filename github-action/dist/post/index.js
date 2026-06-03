@@ -33764,13 +33764,15 @@ function ensureHostAndContainerUsersAlign(exec, imageName, imageTag, devcontaine
             silent: true,
         });
         if (resultHostUser.exitCode !== 0) {
-            throw new Error(`Failed to get host user (exitcode: ${resultHostUser.exitCode}):${resultHostUser.stdout}\n${resultHostUser.stderr}`);
+            // Do not include stdout in the error: it would be the host username (PII).
+            throw new Error(`Failed to get host user (exitcode: ${resultHostUser.exitCode}): ${resultHostUser.stderr}`);
         }
         const resultHostPasswd = yield exec('/bin/sh', ['-c', 'cat /etc/passwd'], {
             silent: true,
         });
         if (resultHostPasswd.exitCode !== 0) {
-            throw new Error(`Failed to get host user info (exitcode: ${resultHostPasswd.exitCode}):${resultHostPasswd.stdout}\n${resultHostPasswd.stderr}`);
+            // Do not include stdout in the error: it would be /etc/passwd content.
+            throw new Error(`Failed to get host user info (exitcode: ${resultHostPasswd.exitCode}): ${resultHostPasswd.stderr}`);
         }
         const resultContainerPasswd = yield exec('docker', [
             'run',
@@ -33781,7 +33783,8 @@ function ensureHostAndContainerUsersAlign(exec, imageName, imageTag, devcontaine
             'cat /etc/passwd',
         ], { silent: true });
         if (resultContainerPasswd.exitCode !== 0) {
-            throw new Error(`Failed to get container user info (exitcode: ${resultContainerPasswd.exitCode}):${resultContainerPasswd.stdout}\n${resultContainerPasswd.stderr}`);
+            // Do not include stdout in the error: it would be /etc/passwd content.
+            throw new Error(`Failed to get container user info (exitcode: ${resultContainerPasswd.exitCode}): ${resultContainerPasswd.stderr}`);
         }
         const resultContainerGroup = yield exec('docker', [
             'run',
@@ -33792,7 +33795,8 @@ function ensureHostAndContainerUsersAlign(exec, imageName, imageTag, devcontaine
             'cat /etc/group',
         ], { silent: true });
         if (resultContainerGroup.exitCode !== 0) {
-            throw new Error(`Failed to get container group info (exitcode: ${resultContainerGroup.exitCode}):${resultContainerGroup.stdout}\n${resultContainerGroup.stderr}`);
+            // Do not include stdout in the error: it would be /etc/group content.
+            throw new Error(`Failed to get container group info (exitcode: ${resultContainerGroup.exitCode}): ${resultContainerGroup.stderr}`);
         }
         const hostUserName = resultHostUser.stdout.trim();
         const hostUsers = (0, users_1.parsePasswd)(resultHostPasswd.stdout);
