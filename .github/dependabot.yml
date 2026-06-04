@@ -1,0 +1,116 @@
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /.github/scripts
+    schedule:
+      interval: daily
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /common
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /github-action
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/build-args/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/build-only/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/docker-from-docker-non-root/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/docker-from-docker-non-root
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /github-tests/Dockerfile/docker-from-docker-non-root
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/docker-from-docker-root/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/docker-from-docker-root
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /github-tests/Dockerfile/docker-from-docker-root
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/env-vars-on-post-create/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/feature-docker-from-docker/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/feature-docker-from-docker
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /github-tests/Dockerfile/feature-docker-from-docker
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/image-tag/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/platform-with-runcmd/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/run-args/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/Dockerfile/skip-user-update/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /github-tests/docker-compose/features/.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /merge
+    schedule:
+      interval: daily

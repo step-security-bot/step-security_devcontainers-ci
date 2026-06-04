@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine as builder
+FROM golang:1.25-alpine@sha256:c05ba4b73604069d376c4f41346b05374335b5ca0c46fb6dfede5a59f5196931 as builder
 
 # Install certs, git, and mercurial
 # RUN apk add --no-cache ca-certificates git build-base
@@ -18,7 +18,7 @@ COPY ./ .
 RUN go build -o foo ./
 
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot 
+FROM gcr.io/distroless/static:nonroot@sha256:963fa6c544fe5ce420f1f54fb88b6fb01479f054c8056d0f74cc2c6000df5240 
 WORKDIR /
 COPY --from=builder /workspace/foo .
 USER nonroot:nonroot
