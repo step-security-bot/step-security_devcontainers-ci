@@ -1,0 +1,25 @@
+---
+name: pr_auto
+# This workflow is triggered automatically for pull requests and runs tests without credentials
+# (image caching not validated).
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - README.md
+      - 'docs/**'
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  build-test:
+    name: "Build, test, publish"
+    uses: ./.github/workflows/ci_common.yml
+    with:
+      prNumber: ${{ github.event.pull_request.number }}
+      runFullTests: false
