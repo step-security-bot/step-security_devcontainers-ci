@@ -181,7 +181,7 @@ jobs:
   #
   # When adding a new test:
   # - add to the 'needs' section for the 'checks-succeeded' job
-  # - add any new images to the image_names in clean_tags.sh
+  # - add any new images to the image_names in .github/scripts/clean_tags.sh
   #
 
   test-simple:
