@@ -1,7 +1,7 @@
 ---
 name: pr_auto
 # This workflow is triggered automatically for pull requests and runs tests without credentials
-# I.e. doesn't validate image caching, doesn't perform tests in Azure DevOps.
+# (image caching not validated).
 
 on:
   pull_request:
@@ -23,5 +23,3 @@ jobs:
     with:
       prNumber: ${{ github.event.pull_request.number }}
       runFullTests: false
-    secrets:
-      AZDO_TOKEN: ${{ secrets.AZDO_TOKEN }}

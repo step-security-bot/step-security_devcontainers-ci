@@ -7,7 +7,7 @@
 		"args": {
 			"DOCKER_GID": "${localEnv:DOCKER_GID}"
 		},
-		"cacheFrom": "ghcr.io/devcontainers/ci/tests/docker-from-docker-non-root:latest"
+		"cacheFrom": "ghcr.io/step-security/devcontainers-ci/tests/docker-from-docker-non-root:latest"
 	},
 
 	"mounts": [

@@ -287,7 +287,7 @@ export async function runContainer(
 	const remoteUser = config.getRemoteUser(devcontainerConfig);
 
 	const args = ['run', '--rm'];
-	args.push('--label', `github.com/devcontainers/ci/`);
+	args.push('--label', `github.com/step-security/devcontainers-ci/`);
 	args.push(
 		'--mount',
 		`type=bind,src=${checkoutPathAbsolute},dst=${workspaceFolder}`,

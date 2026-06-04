@@ -33094,7 +33094,7 @@ async function runContainer(exec, imageName, imageTag, checkoutPath, subFolder, 
     const workdir = path_1.default.join(workspaceFolder, subFolder);
     const remoteUser = config.getRemoteUser(devcontainerConfig);
     const args = ['run', '--rm'];
-    args.push('--label', `github.com/devcontainers/ci/`);
+    args.push('--label', `github.com/step-security/devcontainers-ci/`);
     args.push('--mount', `type=bind,src=${checkoutPathAbsolute},dst=${workspaceFolder}`);
     if (devcontainerConfig.mounts) {
         devcontainerConfig.mounts

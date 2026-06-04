@@ -2203,7 +2203,7 @@ function runMain() {
             const useNativeRunner = core.getBooleanInput('useNativeRunner');
             const buildXInstalled = yield (0, docker_1.isDockerBuildXInstalled)();
             if (!buildXInstalled) {
-                core.warning('docker buildx not available: add a step to set up with docker/setup-buildx-action - see https://github.com/devcontainers/ci/blob/main/docs/github-action.md');
+                core.warning('docker buildx not available: add a step to set up with docker/setup-buildx-action - see https://github.com/step-security/devcontainers-ci/blob/main/docs/github-action.md');
                 return;
             }
             const devContainerCliInstalled = yield dev_container_cli_1.devcontainer.isCliInstalled(exec_1.exec);
@@ -33858,7 +33858,7 @@ function runContainer(exec, imageName, imageTag, checkoutPath, subFolder, comman
         const workdir = path_1.default.join(workspaceFolder, subFolder);
         const remoteUser = config.getRemoteUser(devcontainerConfig);
         const args = ['run', '--rm'];
-        args.push('--label', `github.com/devcontainers/ci/`);
+        args.push('--label', `github.com/step-security/devcontainers-ci/`);
         args.push('--mount', `type=bind,src=${checkoutPathAbsolute},dst=${workspaceFolder}`);
         if (devcontainerConfig.mounts) {
             devcontainerConfig.mounts

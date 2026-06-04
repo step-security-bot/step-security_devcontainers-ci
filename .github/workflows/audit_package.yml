@@ -23,7 +23,7 @@ on:
         description: "Working directories to run commands in (comma-separated, optional)"
         required: false
         type: string
-        default: "github-action,merge,common,azdo-task/DevcontainersCi,azdo-task/DevcontainersMerge,.github/scripts"
+        default: "github-action,merge,common,.github/scripts"
   schedule:
     - cron: "0 0 * * 1"
 
@@ -39,10 +39,6 @@ jobs:
             script: npm run all
           - working_directory: common
             script: npm run build
-          - working_directory: azdo-task/DevcontainersCi
-            script: npm run all
-          - working_directory: azdo-task/DevcontainersMerge
-            script: npm run all
           - working_directory: .github/scripts
             script: npm test
     uses: step-security/reusable-workflows/.github/workflows/audit_fix.yml@v1

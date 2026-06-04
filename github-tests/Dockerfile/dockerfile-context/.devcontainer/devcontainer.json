@@ -5,7 +5,7 @@
 	"dockerFile": "CustomDockerfile",
 	"context" : "../context",
 	"build": {
-		"cacheFrom": "ghcr.io/devcontainers/ci/tests/dockerfile-context:latest"
+		"cacheFrom": "ghcr.io/step-security/devcontainers-ci/tests/dockerfile-context:latest"
 	},
 
 

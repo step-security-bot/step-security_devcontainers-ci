@@ -6,8 +6,6 @@ The Dev Container Build and Run GitHub Action is aimed at making it easier to re
 
 > **NOTE:** The Action is not currently capable of taking advantage of pre-built Codespaces. However, pre-built images are supported.
 
-A similar [Azure DevOps Task](./docs/azure-devops-task.md) is also available!
-
 Note that this project builds on top of [@devcontainers/cli](https://www.npmjs.com/package/@devcontainers/cli) which can be used in other automation systems.
 
 ## Quick start

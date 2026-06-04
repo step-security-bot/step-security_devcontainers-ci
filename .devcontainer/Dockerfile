@@ -55,14 +55,6 @@ RUN sudo groupadd docker && sudo usermod -aG docker $USERNAME && newgrp docker
 COPY scripts/act.sh /tmp/
 RUN /bin/bash /tmp/act.sh 0.2.21
 
-RUN sudo npm install -g tfx-cli
-
-# azure-cli-no-mount
-COPY scripts/azure-cli.sh /tmp/
-RUN /bin/bash /tmp/azure-cli.sh
-
-RUN az extension add --name azure-devops
-
 # __DEVCONTAINER_SNIPPET_INSERT__ (control where snippets get inserted using the devcontainer CLI)
 
 # Switch back to dialog for any ad-hoc use of apt-get

@@ -4,7 +4,7 @@
 	"name": "env-vars-on-post-create",
 	"dockerFile": "Dockerfile",
 	"build": {
-		"cacheFrom": "ghcr.io/devcontainers/ci/tests/env-vars-on-post-create:latest"
+		"cacheFrom": "ghcr.io/step-security/devcontainers-ci/tests/env-vars-on-post-create:latest"
 	},
 	"remoteEnv": {
 		"TEST_ENV_VALUE": "${localEnv:TEST_ENV_VALUE}"
